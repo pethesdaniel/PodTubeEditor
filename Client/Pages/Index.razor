@@ -1,0 +1,15 @@
+﻿@page "/"
+@using PodTubeEditor.Client.Services;
+@using PodTubeEditor.Shared.Model;
+@inject TimelineService timelineService;
+
+<PodTubeEditor.Client.Components.AssetBrowser.AssetBrowser AddAssetToTimeline=OnAddAssetToTimeline></PodTubeEditor.Client.Components.AssetBrowser.AssetBrowser>
+<PodTubeEditor.Client.Components.Timeline.Timeline Value="timelineService.Timeline"></PodTubeEditor.Client.Components.Timeline.Timeline>
+
+@code {
+    [Parameter] public List<Asset> AssetsOnTimeline { get; set; } = new List<Asset>();
+
+    public void OnAddAssetToTimeline(Asset asset) {
+        timelineService.AddAssetToTimeline(asset);
+    }
+}

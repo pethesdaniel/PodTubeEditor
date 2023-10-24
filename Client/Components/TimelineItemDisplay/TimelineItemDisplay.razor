@@ -1,0 +1,67 @@
+﻿@using PodTubeEditor.Shared.Model;
+@using Radzen.Blazor.Rendering;
+
+<RadzenCard class="p-1 rz-background-color-info rz-color-on-info rz-text-align-center" Style=@GetStyle()>
+    <RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" Gap="1rem" Class="rz-p-4">
+            @if (Value.Asset.Url != null) {
+                <RadzenImage Path="@Value.Asset.Url" Style="width: 50px; height: 50px; border-radius: 50%;" />
+            }
+            <RadzenText TextStyle="TextStyle.Body1"><b>@(Value.Asset.Name)</b></RadzenText>
+            <RadzenStack Gap="0">
+                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Duration</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-display-flex rz-mt-0"><b>@(GetDuration(Value.Duration))</b></RadzenText>
+            </RadzenStack>
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal">
+            @if (DisplayLeftSwap) {
+                <RadzenButton Click=@(args => OnLeftSwap.InvokeAsync(Value)) Icon="fast_rewind" ButtonStyle="ButtonStyle.Primary" />
+            }
+            <RadzenButton @ref=IncreaseButtonRef Click=@(args => IncreasePopup.ToggleAsync(IncreaseButtonRef.Element)) Icon="add" ButtonStyle="ButtonStyle.Primary" />
+            <RadzenButton @ref=DecreaseButtonRef Click=@(args => DecreasePopup.ToggleAsync(DecreaseButtonRef.Element)) Icon="remove" ButtonStyle="ButtonStyle.Primary" />
+            @if (DisplayRightSwap) {
+                <RadzenButton Click=@(args => OnRightSwap.InvokeAsync(Value)) Icon="fast_forward" ButtonStyle="ButtonStyle.Primary" />
+            }
+        </RadzenStack>
+    </RadzenStack>
+</RadzenCard>
+
+<Popup @ref=IncreasePopup Lazy=true Style="display:none;position:absolute;background-color:var(--rz-panel-background-color);">
+    <PodTubeEditor.Client.Components.TimelineItemDisplay.DurationPopup.DurationPopup OnDone="OnIncreaseDuration" Operation="Add time"/>
+</Popup>
+
+<Popup @ref=DecreasePopup Lazy=true Style="display:none;position:absolute;background-color:var(--rz-panel-background-color);">
+    <PodTubeEditor.Client.Components.TimelineItemDisplay.DurationPopup.DurationPopup OnDone="OnDecreaseDuration" Operation="Remove time"/>
+</Popup>
+
+@code {
+    [Parameter] public TimelineItem Value { get; set; }
+    [Parameter] public double TimelineScale { get; set; }
+    [Parameter] public bool DisplayLeftSwap { get; set; } = false;
+    [Parameter] public bool DisplayRightSwap { get; set; } = false;
+    [Parameter] public EventCallback<TimelineItem> OnLeftSwap { get; set; } = new EventCallback<TimelineItem>();
+    [Parameter] public EventCallback<TimelineItem> OnRightSwap { get; set; } = new EventCallback<TimelineItem>();
+
+    private Popup IncreasePopup;
+    private Popup DecreasePopup;
+    private RadzenButton IncreaseButtonRef;
+    private RadzenButton DecreaseButtonRef;
+
+    public string GetDuration(int value) {
+        return TimeSpan.FromSeconds(value).ToString("c");
+    }
+
+    public string GetStyle() {
+        return $"width: {TimelineScale * Value.Duration}px; flex-shrink: 0;";
+    }
+
+    public void OnIncreaseDuration(int value) {
+        Value.Duration += value;
+        IncreasePopup.CloseAsync();
+    }
+
+    public void OnDecreaseDuration(int value) {
+        Value.Duration -= value;
+        DecreasePopup.CloseAsync();
+    }
+}

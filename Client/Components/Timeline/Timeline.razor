@@ -1,0 +1,46 @@
+﻿@using PodTubeEditor.Shared.Model;
+@*<RadzenSplitter Orientation="Radzen.Orientation.Vertical" style="height: 200px; border: 1px solid rgba(0,0,0,.08);">
+    <RadzenSplitterPane Size="100px">
+        <RadzenSplitter>
+            @foreach (var assets in AssetsOnTimeline) {
+                <RadzenSplitterPane Collapsible=false>
+                    @assets.Name
+                </RadzenSplitterPane>
+            }
+        </RadzenSplitter>
+    </RadzenSplitterPane>
+</RadzenSplitter>*@
+@if(Value != null) {
+    <RadzenButton Click=@(args => TimelineScale *= 2) Icon="zoom_in" ButtonStyle="ButtonStyle.Primary" />
+    <RadzenButton Click=@(args => TimelineScale *= 0.5) Icon="zoom_out" ButtonStyle="ButtonStyle.Primary" />
+    <div style="display: flex; flex-direction: row; overflow:scroll">
+        @for (int i = 0; i < Value.Items.Count; ++i) {
+            <PodTubeEditor.Client.Components.TimelineItemDisplay.TimelineItemDisplay 
+            Value="@Value.Items[i]" 
+            TimelineScale="TimelineScale" 
+            DisplayLeftSwap="i > 0"
+            DisplayRightSwap="i < Value.Items.Count - 1"
+            OnLeftSwap="@((value)=> SwapItems(right: value))"
+            OnRightSwap="@((value)=> SwapItems(left: value))" />
+        }
+    </div>
+}
+
+
+@code {
+    [Parameter] public PodTubeEditor.Shared.Model.Timeline? Value { get; set; } = null!;
+
+    private double TimelineScale = 1.0f;
+
+    public void SwapItems(TimelineItem? left = null, TimelineItem? right = null) {
+        if(left == null) {
+            left = Value.Items[Value.Items.IndexOf(right) - 1];
+        } else if(right == null){
+            right = Value.Items[Value.Items.IndexOf(left) + 1];
+        } else {
+            return;
+        }
+        Value.Items.Remove(left);
+        Value.Items.Insert(Value.Items.IndexOf(right) + 1, left);
+    }
+}
