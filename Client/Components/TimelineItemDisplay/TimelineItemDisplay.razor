@@ -1,10 +1,13 @@
-﻿@using PodTubeEditor.Shared.Model;
+﻿@inject IJSRuntime JS;
+@using PodTubeEditor.Shared.Model;
 @using Radzen.Blazor.Rendering;
 
-<RadzenCard class="p-1 rz-background-color-info rz-color-on-info rz-text-align-center" Style=@GetStyle()>
-    <RadzenStack>
+<RadzenCard class="p-0 rz-background-color-info rz-color-on-info rz-text-align-center" Style=@GetStyle() >
+    <div @ref="waveformRef" style="position:absolute; width: 100% ; height: 100%; top: 0; left: 0; z-index: 1" />
+    <RadzenStack style="position: inherit; z-index: 5">
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" Gap="1rem" Class="rz-p-4">
-            @if (Value.Asset.Url != null) {
+            @if (Value.Asset.IsAudio) {
+            } else {
                 <RadzenImage Path="@Value.Asset.Url" Style="width: 50px; height: 50px; border-radius: 50%;" />
             }
             <RadzenText TextStyle="TextStyle.Body1"><b>@(Value.Asset.Name)</b></RadzenText>
@@ -17,8 +20,10 @@
             @if (DisplayLeftSwap) {
                 <RadzenButton Click=@(args => OnLeftSwap.InvokeAsync(Value)) Icon="fast_rewind" ButtonStyle="ButtonStyle.Primary" />
             }
-            <RadzenButton @ref=IncreaseButtonRef Click=@(args => IncreasePopup.ToggleAsync(IncreaseButtonRef.Element)) Icon="add" ButtonStyle="ButtonStyle.Primary" />
-            <RadzenButton @ref=DecreaseButtonRef Click=@(args => DecreasePopup.ToggleAsync(DecreaseButtonRef.Element)) Icon="remove" ButtonStyle="ButtonStyle.Primary" />
+            @if (DisplayChangeDuration) {
+                <RadzenButton @ref=IncreaseButtonRef Click=@(args => IncreasePopup.ToggleAsync(IncreaseButtonRef.Element)) Icon="add" ButtonStyle="ButtonStyle.Primary" />
+                <RadzenButton @ref=DecreaseButtonRef Click=@(args => DecreasePopup.ToggleAsync(DecreaseButtonRef.Element)) Icon="remove" ButtonStyle="ButtonStyle.Primary" />
+            }
             @if (DisplayRightSwap) {
                 <RadzenButton Click=@(args => OnRightSwap.InvokeAsync(Value)) Icon="fast_forward" ButtonStyle="ButtonStyle.Primary" />
             }
@@ -34,11 +39,17 @@
     <PodTubeEditor.Client.Components.TimelineItemDisplay.DurationPopup.DurationPopup OnDone="OnDecreaseDuration" Operation="Remove time"/>
 </Popup>
 
+<audio preload="auto" hidden @ref="mediaElementRef" @onloadedmetadata="OnGetMetadata">
+    <source src="@Value.Asset.Url">
+    Your browser does not support the audio element.
+</audio>
+
 @code {
     [Parameter] public TimelineItem Value { get; set; }
     [Parameter] public double TimelineScale { get; set; }
     [Parameter] public bool DisplayLeftSwap { get; set; } = false;
     [Parameter] public bool DisplayRightSwap { get; set; } = false;
+    [Parameter] public bool DisplayChangeDuration { get; set; } = false;
     [Parameter] public EventCallback<TimelineItem> OnLeftSwap { get; set; } = new EventCallback<TimelineItem>();
     [Parameter] public EventCallback<TimelineItem> OnRightSwap { get; set; } = new EventCallback<TimelineItem>();
 
@@ -46,22 +57,45 @@
     private Popup DecreasePopup;
     private RadzenButton IncreaseButtonRef;
     private RadzenButton DecreaseButtonRef;
+    private ElementReference waveformRef { get; set; }
+    private IJSObjectReference waveSurferObject { get; set; }
+    private ElementReference mediaElementRef { get; set; }
 
-    public string GetDuration(int value) {
+    public string GetDuration(double value) {
         return TimeSpan.FromSeconds(value).ToString("c");
     }
 
     public string GetStyle() {
-        return $"width: {TimelineScale * Value.Duration}px; flex-shrink: 0;";
+        return $"width: {TimelineScale * Value.Duration}px; flex-shrink: 0; position:relative; padding: 16px 0px;";
     }
 
-    public void OnIncreaseDuration(int value) {
+    public void OnIncreaseDuration(double value) {
         Value.Duration += value;
         IncreasePopup.CloseAsync();
     }
 
-    public void OnDecreaseDuration(int value) {
+    public void OnDecreaseDuration(double value) {
         Value.Duration -= value;
         DecreasePopup.CloseAsync();
+    }
+
+    public void SetDuration(double value) {
+        Value.Duration = value;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender && Value != null && Value.Asset.IsAudio && waveSurferObject == null) {
+            await CreateWaveform();
+        }
+    }
+
+    private async Task CreateWaveform() {
+        waveSurferObject = await JS.InvokeAsync<IJSObjectReference>("createWaveform", waveformRef, Value.Asset.Url, mediaElementRef);
+        
+    }
+
+    private async Task OnGetMetadata() {
+        SetDuration(await JS.InvokeAsync<double>("getDuration", mediaElementRef));
     }
 }

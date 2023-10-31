@@ -9,6 +9,10 @@
             <RadzenFormField Text="Url" Style="width: 100%;">
                 <RadzenTextBox @bind-Value="@NewItemUrl" Style="width: 100%;" />
             </RadzenFormField>
+            <RadzenStack Orientation="Orientation.Vertical" Gap="4px">
+                IsAudio
+                <RadzenSwitch @bind-Value="@NewItemIsAudio" Style="margin-top: 4px;" />
+            </RadzenStack>
             <RadzenButton Click=@(args => OnCreateNewItem()) Icon="add" Text="Add" ButtonStyle="ButtonStyle.Primary" />
         </RadzenCard>
     </RadzenColumn>
@@ -34,12 +38,14 @@
     private List<Asset> Assets { get; set; } = new List<Asset>();
     private string NewItemName { get; set; }
     private string NewItemUrl { get; set; }
+    private bool NewItemIsAudio { get; set; }
 
     public void OnCreateNewItem() {
         Assets.Add(new Asset
             {
                 Name = NewItemName,
-                Url = NewItemUrl
+                Url = NewItemUrl,
+                IsAudio = NewItemIsAudio
             }
         );
     }

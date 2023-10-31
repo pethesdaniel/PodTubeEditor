@@ -5,10 +5,17 @@ namespace PodTubeEditor.Client.Services {
         public Timeline Timeline { get; set; } = new Timeline();
 
         public void AddAssetToTimeline(Asset asset) {
-            Timeline.Items.Add(new TimelineItem {
-                Asset = asset,
-                Duration = 100
-            });
+            if (asset.IsAudio) {
+                Timeline.AudioItems.Add(new TimelineItem {
+                    Asset = asset,
+                    Duration = 100
+                });
+            } else {
+                Timeline.VisualItems.Add(new TimelineItem {
+                    Asset = asset,
+                    Duration = 100
+                });
+            }
         }
     }
 }

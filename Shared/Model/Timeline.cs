@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace PodTubeEditor.Shared.Model {
     public class Timeline {
-        public List<TimelineItem> Items { get; set; } = new List<TimelineItem>();
+        public List<TimelineItem> VisualItems { get; set; } = new List<TimelineItem>();
+        public List<TimelineItem> AudioItems { get; set; } = new List<TimelineItem>();
     }
 }

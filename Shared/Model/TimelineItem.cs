@@ -7,6 +7,6 @@ using System.Threading.Tasks;
 namespace PodTubeEditor.Shared.Model {
     public class TimelineItem {
         public Asset Asset { get; set; }
-        public int Duration { get; set; }
+        public double Duration { get; set; }
     }
 }

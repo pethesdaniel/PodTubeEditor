@@ -29,6 +29,25 @@
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+    <script src="https://unpkg.com/wavesurfer.js@7"></script>
+    <script>
+        function createWaveform(htmlElement, url, media) {
+            console.log("Test")
+            return WaveSurfer.create({
+                container: htmlElement,
+                waveColor: '#4F4A85',
+                progressColor: '#383351',
+                media: media,
+                url: url
+            })
+        }
+        function getDuration(element) {
+            if (!element) {
+                return 0;
+            }
+            return element.duration ?? 0;
+        }
+    </script>
 </body>
 
 </html>
